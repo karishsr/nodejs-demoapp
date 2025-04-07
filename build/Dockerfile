@@ -1,19 +1,19 @@
-ARG ARCH=
-ARG IMAGE_BASE=20-alpine
+# Use official Node.js image
+FROM node:18-alpine 
 
-FROM ${ARCH}node:$IMAGE_BASE
-LABEL Name="Node.js Demo App" Version=4.9.9
-LABEL org.opencontainers.image.source = "https://github.com/benc-uk/nodejs-demoapp"
-ENV NODE_ENV production
-WORKDIR /app 
+WORKDIR /app
 
-# For Docker layer caching do this BEFORE copying in rest of app
+# Copy only package.json and package-lock.json first
 COPY src/package*.json ./
-RUN npm install --production --silent
 
-# NPM is done, now copy in the rest of the project to the workdir
-COPY src/. .
+# Use npm install with force to fix dependency issues
+RUN npm install --production --silent --legacy-peer-deps
 
-# Port 3000 for our Express server 
+# Copy the rest of the project files
+COPY . .
+
+# Expose the application port
 EXPOSE 3000
-ENTRYPOINT ["npm", "start"]
+
+# Start the application
+CMD ["node", "server.js"]
